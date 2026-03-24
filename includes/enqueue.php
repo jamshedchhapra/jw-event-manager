@@ -15,3 +15,14 @@ JWEM_URL.'assets/frontend.css'
 );
 
 }
+wp_enqueue_script(
+'jwem-js',
+JWEM_URL.'assets/rsvp.js',
+['jquery'],
+null,
+true
+);
+
+wp_localize_script('jwem-js','jwem',[
+'ajax'=>admin_url('admin-ajax.php')
+]);

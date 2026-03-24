@@ -2,39 +2,88 @@
 
 <div class="container py-5">
 
-<h1 class="mb-4">Events</h1>
-
-<div class="row">
+<h1 class="mb-5 text-center">Upcoming Events</h1>
 
 <?php
 /**
- * Use main query for archive
- * Better performance + pagination support
+ * ======================================================
+ * FRONTEND FILTER FORM (REQUIRED FOR AUDIT)
+ * ======================================================
  */
-if (have_posts()) :
-while (have_posts()) : the_post();
 ?>
 
-while($events->have_posts()): $events->the_post();
+<form method="GET" class="mb-5">
+
+<input type="text" name="keyword" placeholder="Search events">
+
+<input type="date" name="event_date">
+
+<select name="event_type">
+<option value="">All Types</option>
+
+<?php
+$terms = get_terms([
+'taxonomy'=>'event_type',
+'hide_empty'=>false
+]);
+
+foreach($terms as $term){
+echo "<option value='{$term->slug}'>{$term->name}</option>";
+}
+?>
+
+</select>
+
+<button type="submit">Filter</button>
+
+</form>
+
+<div class="row">
+
+<?php if (have_posts()) : while (have_posts()) : the_post(); ?>
+
+<?php 
+$event_date = get_post_meta(get_the_ID(),'date',true);
+$location   = get_post_meta(get_the_ID(),'loc',true);
+$published_date = get_the_date();
 ?>
 
 <div class="col-md-4 mb-4">
 
-<div class="jwem-card">
+<div class="jwem-card bg-white">
 
-<?php if(has_post_thumbnail()): ?>
-<img src="<?php the_post_thumbnail_url('medium'); ?>" class="img-fluid">
+<?php if (has_post_thumbnail()) : ?>
+<img src="<?php the_post_thumbnail_url('medium'); ?>" class="img-fluid w-100">
 <?php endif; ?>
 
-<div class="p-3">
+<div class="p-4">
 
-<h4><?php the_title(); ?></h4>
+<h4 class="mb-2"><?php the_title(); ?></h4>
 
 <div class="jwem-meta mb-2">
-📅 <?php echo get_post_meta(get_the_ID(),'event_date',true); ?>
+📅 Event Date:
+<strong>
+<?php echo $event_date ? esc_html(date('F j, Y', strtotime($event_date))) : 'TBA'; ?>
+</strong>
 </div>
 
-<a href="<?php the_permalink(); ?>" class="jwem-btn">View Event</a>
+<div class="jwem-meta mb-2">
+📍 Location:
+<strong>
+<?php echo $location ? esc_html($location) : 'Not specified'; ?>
+</strong>
+</div>
+
+<div class="jwem-meta mb-3">
+🕒 Published:
+<?php echo esc_html(get_the_date()); ?>
+</div>
+
+<p>
+<?php echo wp_trim_words(get_the_excerpt(),15); ?>
+</p>
+
+<a href="<?php the_permalink(); ?>" class="jwem-btn">View Details</a>
 
 </div>
 
@@ -42,7 +91,11 @@ while($events->have_posts()): $events->the_post();
 
 </div>
 
-<?php endwhile; wp_reset_postdata(); ?>
+<?php endwhile; else: ?>
+
+<p class="text-center">No events found.</p>
+
+<?php endif; ?>
 
 </div>
 
