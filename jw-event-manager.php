@@ -28,6 +28,8 @@ $jwem_files = [
 'rsvp.php',
 'rest.php',
 'cli.php',
+'templates.php',
+'enqueue.php',
 'performance.php'
 
 ];
