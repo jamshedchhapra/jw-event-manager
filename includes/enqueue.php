@@ -56,7 +56,8 @@ function jwem_frontend_assets(){
      * ==========================
      */
     wp_localize_script('jwem-js','jwem',[
-        'ajax' => admin_url('admin-ajax.php')
-    ]);
+    'ajax' => admin_url('admin-ajax.php'),
+    'nonce' => wp_create_nonce('jwem_rsvp_action')
+]);
 
 }
