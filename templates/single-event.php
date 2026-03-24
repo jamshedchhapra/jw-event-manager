@@ -56,7 +56,32 @@ $published_date = get_the_date();
 <?php the_content(); ?>
 </div>
 
-<a href="#" class="jwem-btn">RSVP Now</a>
+<!-- ==========================================
+     START RSVP BUTTON + FORM (FIXED)
+========================================== -->
+
+<div class="mt-4">
+
+    <!-- RSVP Button (optional visual only) -->
+    <button class="jwem-btn mb-3">RSVP Now</button>
+
+    <!-- RSVP FORM (THIS WAS MISSING) -->
+    <div class="jwem-rsvp-form">
+
+        <?php
+        /**
+         * Render RSVP form using shortcode
+         */
+        echo do_shortcode('[jwem_rsvp]');
+        ?>
+
+    </div>
+
+</div>
+
+<!-- ==========================================
+     END RSVP SECTION
+========================================== -->
 
 </div>
 
