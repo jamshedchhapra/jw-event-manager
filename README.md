@@ -60,6 +60,19 @@ Seed test events:
 wp jwem seed-events
 ```
 
+## Sample Data For Testing
+You can generate sample event records with the built-in WP-CLI command:
+
+```bash
+wp jwem seed-events
+```
+
+This creates published `jwem_event` posts for quick functional testing (archive, single, shortcode, REST).
+
+Automated test references are available in:
+- `tests/test-cpt.php`
+- `tests/test-events.php`
+
 ## Final QA Status
 Validated scenarios:
 1. REST endpoint returns structured array (or `[]` when empty)
