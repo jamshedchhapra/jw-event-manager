@@ -50,16 +50,19 @@ function jwem_rest_get_events(){
     /* Avoid repeated DB queries for same REST response */
 
     $cached = get_transient('jwem_rest_events');
-
-    if($cached !== false){
-        return $cached;
+    if ($cached !== false && jwem_rest_cache_is_valid($cached)) {
+        return rest_ensure_response($cached);
     }
 
     /* ===== PERFORMANCE CACHE END ===== */
 
     $events = get_posts([
-        'post_type'   => 'jwem_event',
-        'numberposts' => 10
+        'post_type'      => 'jwem_event',
+        'post_status'    => 'publish',
+        'numberposts'    => 10,
+        'orderby'        => 'date',
+        'order'          => 'DESC',
+        'suppress_filters' => false
     ]);
 
     $data = [];
@@ -88,6 +91,31 @@ function jwem_rest_get_events(){
     /* ===== STORE CACHE (5 minutes) ===== */
     set_transient('jwem_rest_events',$data,5 * MINUTE_IN_SECONDS);
 
-    return $data;
+    return rest_ensure_response($data);
 
+}
+
+/**
+ * Validate cached REST payload shape.
+ * Prevent stale WP_Post objects from being served.
+ */
+function jwem_rest_cache_is_valid($cached){
+    if (!is_array($cached)) {
+        return false;
+    }
+
+    foreach ($cached as $item) {
+        if (!is_array($item)) {
+            return false;
+        }
+
+        $required = ['id', 'title', 'link', 'date', 'location', 'organizer'];
+        foreach ($required as $key) {
+            if (!array_key_exists($key, $item)) {
+                return false;
+            }
+        }
+    }
+
+    return true;
 }

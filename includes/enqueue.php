@@ -46,7 +46,7 @@ function jwem_frontend_assets(){
         'jwem-js',
         JWEM_URL.'assets/rsvp.js',
         ['jquery'],
-        null,
+        filemtime(JWEM_PATH . 'assets/rsvp.js'),
         true
     );
 

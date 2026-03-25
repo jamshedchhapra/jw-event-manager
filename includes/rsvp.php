@@ -31,34 +31,6 @@ ob_start();
 
 <div id="jwem-msg"></div>
 
-<script>
-jQuery('#jwem-rsvp-form').on('submit',function(e){
-
-e.preventDefault();
-
-let form = jQuery(this);
-
-jQuery.post('<?php echo admin_url('admin-ajax.php'); ?>',
-form.serialize() + '&action=jwem_rsvp',
-function(res){
-
-jQuery('#jwem-msg').html(res);
-
-/* ===== UX IMPROVEMENT ===== */
-/* Disable form + clear inputs after success */
-
-if(res.includes('RSVP Confirmed')){
-
-form.find('input,button').prop('disabled',true);
-form[0].reset();
-
-}
-
-});
-
-});
-</script>
-
 <?php
 return ob_get_clean();
 

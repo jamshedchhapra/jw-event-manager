@@ -8,23 +8,23 @@ jQuery(document).ready(function($){
 
     console.log('JWEM JS LOADED ✅');
 
-    /**
-     * Toggle RSVP Form (FORCE BIND)
-     */
-    $(document).on('click', '.jwem-btn', function(e){
+    /* ===== FINAL FIX — Prevent blocking View Details links ===== */
+/* Now RSVP toggle works ONLY on real RSVP button */
 
-        console.log('RSVP BUTTON CLICKED ✅');
+$(document).on('click', '.jwem-rsvp-toggle', function(e){
 
-        e.preventDefault();
+    console.log('RSVP TOGGLE CLICKED ✅');
 
-        $('.jwem-rsvp-form').slideToggle();
+    e.preventDefault();
 
-    });
+    $(this).closest('.mt-4').find('.jwem-rsvp-form').first().slideToggle();
+
+});
 
     /**
      * Submit RSVP Form
      */
-    $(document).on('submit','#jwem-rsvp',function(e){
+    $(document).on('submit','#jwem-rsvp-form',function(e){
 
         console.log('FORM SUBMIT TRIGGERED ✅');
 

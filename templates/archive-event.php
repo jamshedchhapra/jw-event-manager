@@ -2,7 +2,7 @@
 
 <div class="container py-5">
 
-<h1 class="mb-5 text-center">Upcoming Events</h1>
+<h1 class="mb-5 text-center"><?php esc_html_e('Upcoming Events', 'jw-event-manager'); ?></h1>
 
 <?php
 /**
@@ -14,12 +14,12 @@
 
 <form method="GET" class="mb-5">
 
-<input type="text" name="keyword" placeholder="Search events">
+<input type="text" name="keyword" placeholder="<?php esc_attr_e('Search events', 'jw-event-manager'); ?>">
 
 <input type="date" name="event_date">
 
 <select name="event_type">
-<option value="">All Types</option>
+<option value=""><?php esc_html_e('All Types', 'jw-event-manager'); ?></option>
 
 <?php
 $terms = get_terms([
@@ -34,7 +34,7 @@ echo "<option value='{$term->slug}'>{$term->name}</option>";
 
 </select>
 
-<button type="submit">Filter</button>
+<button type="submit"><?php esc_html_e('Filter', 'jw-event-manager'); ?></button>
 
 </form>
 
@@ -61,21 +61,21 @@ $published_date = get_the_date();
 <h4 class="mb-2"><?php the_title(); ?></h4>
 
 <div class="jwem-meta mb-2">
-📅 Event Date:
+📅 <?php esc_html_e('Event Date:', 'jw-event-manager'); ?>
 <strong>
-<?php echo $event_date ? esc_html(date('F j, Y', strtotime($event_date))) : 'TBA'; ?>
+<?php echo $event_date ? esc_html(date_i18n(get_option('date_format'), strtotime($event_date))) : esc_html__('TBA', 'jw-event-manager'); ?>
 </strong>
 </div>
 
 <div class="jwem-meta mb-2">
-📍 Location:
+📍 <?php esc_html_e('Location:', 'jw-event-manager'); ?>
 <strong>
-<?php echo $location ? esc_html($location) : 'Not specified'; ?>
+<?php echo $location ? esc_html($location) : esc_html__('Not specified', 'jw-event-manager'); ?>
 </strong>
 </div>
 
 <div class="jwem-meta mb-3">
-🕒 Published:
+🕒 <?php esc_html_e('Published:', 'jw-event-manager'); ?>
 <?php echo esc_html(get_the_date()); ?>
 </div>
 
@@ -83,7 +83,7 @@ $published_date = get_the_date();
 <?php echo wp_trim_words(get_the_excerpt(),15); ?>
 </p>
 
-<a href="<?php the_permalink(); ?>" class="jwem-btn">View Details</a>
+<a href="<?php the_permalink(); ?>" class="jwem-view-details"><?php esc_html_e('View Details', 'jw-event-manager'); ?></a>
 
 </div>
 
@@ -93,7 +93,7 @@ $published_date = get_the_date();
 
 <?php endwhile; else: ?>
 
-<p class="text-center">No events found.</p>
+<p class="text-center"><?php esc_html_e('No events found.', 'jw-event-manager'); ?></p>
 
 <?php endif; ?>
 

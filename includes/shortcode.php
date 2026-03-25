@@ -1,57 +1,53 @@
 <?php
-/* FINAL EVENT LISTING SHORTCODE */
+/**
+ * Event listing shortcode.
+ *
+ * Usage: [jwem_events]
+ */
 
-function jwem_list(){
+add_action('init', 'jwem_register_shortcodes');
 
-$events = get_transient('jwem_events_cache');
-
-if(false === $events){
-
-$events = new WP_Query([
-'post_type'=>'jwem_event',
-'posts_per_page'=>10
-]);
-
-set_transient('jwem_events_cache',$events,HOUR_IN_SECONDS);
-
+function jwem_register_shortcodes(){
+    add_shortcode('jwem_events', 'jwem_list');
 }
 
-ob_start();
+/**
+ * Ensure shortcode parsing remains active even if another theme/plugin removes it.
+ */
+add_action('init', 'jwem_restore_shortcode_content_filter', 20);
 
-/* ===== QUERY SAFETY FIX START ===== */
-/* Prevent fatal loop when no events exist */
-
-if($events->have_posts()){
-
-while($events->have_posts()){
-$events->the_post();
-
-$date = get_post_meta(get_the_ID(),'date',true);
-$loc  = get_post_meta(get_the_ID(),'loc',true);
-
-echo '<div class="jwem-event">';
-echo '<h3><a href="'.get_permalink().'">'.get_the_title().'</a></h3>';
-echo '<p>'.__('Date:','jw-event-manager').' '.$date.'</p>';
-echo '<p>'.__('Location:','jw-event-manager').' '.$loc.'</p>';
-echo '</div>';
-
+function jwem_restore_shortcode_content_filter(){
+    if (!has_filter('the_content', 'do_shortcode')) {
+        add_filter('the_content', 'do_shortcode', 11);
+    }
 }
 
-}else{
+function jwem_list($atts = []){
+    $events = get_posts([
+        'post_type'      => 'jwem_event',
+        'post_status'    => 'publish',
+        'posts_per_page' => 10,
+        'orderby'        => 'date',
+        'order'          => 'DESC'
+    ]);
 
-/* Graceful fallback UI when no events found */
-echo '<p>'.__('No events found','jw-event-manager').'</p>';
+    if (empty($events)) {
+        return '<p>' . esc_html__('No events found', 'jw-event-manager') . '</p>';
+    }
 
+    ob_start();
+
+    foreach ($events as $event) {
+        $event_id = $event->ID;
+        $date = get_post_meta($event_id, 'date', true);
+        $loc  = get_post_meta($event_id, 'loc', true);
+
+        echo '<div class="jwem-event">';
+        echo '<h3><a href="' . esc_url(get_permalink($event_id)) . '">' . esc_html(get_the_title($event_id)) . '</a></h3>';
+        echo '<p>' . esc_html__('Date:', 'jw-event-manager') . ' ' . esc_html($date) . '</p>';
+        echo '<p>' . esc_html__('Location:', 'jw-event-manager') . ' ' . esc_html($loc) . '</p>';
+        echo '</div>';
+    }
+
+    return ob_get_clean();
 }
-
-/* ===== QUERY SAFETY FIX END ===== */
-
-wp_reset_postdata();
-
-return ob_get_clean();
-
-}
-
-add_shortcode('jwem_events','jwem_list');
-
-/* ===== END SHORTCODE ===== */

@@ -25,30 +25,30 @@ $published_date = get_the_date();
 <h1 class="mb-3"><?php the_title(); ?></h1>
 
 <div class="jwem-meta mb-2">
-📅 Event Date:
+📅 <?php esc_html_e('Event Date:', 'jw-event-manager'); ?>
 <strong>
-<?php echo $event_date ? esc_html(date('F j, Y', strtotime($event_date))) : 'To Be Announced'; ?>
+<?php echo $event_date ? esc_html(date_i18n(get_option('date_format'), strtotime($event_date))) : esc_html__('To Be Announced', 'jw-event-manager'); ?>
 </strong>
 </div>
 
 <div class="jwem-meta mb-2">
-📍 Location:
+📍 <?php esc_html_e('Location:', 'jw-event-manager'); ?>
 <strong>
-<?php echo $location ? esc_html($location) : 'Not specified'; ?>
+<?php echo $location ? esc_html($location) : esc_html__('Not specified', 'jw-event-manager'); ?>
 </strong>
 </div>
 
 <div class="jwem-meta mb-2">
-👤 Organizer:
+👤 <?php esc_html_e('Organizer:', 'jw-event-manager'); ?>
 <strong>
-<?php echo $organizer ? esc_html($organizer) : 'TBA'; ?>
+<?php echo $organizer ? esc_html($organizer) : esc_html__('TBA', 'jw-event-manager'); ?>
 </strong>
 </div>
 
 <div class="jwem-meta mb-4">
-🎟 RSVP Limit:
+🎟 <?php esc_html_e('RSVP Limit:', 'jw-event-manager'); ?>
 <strong>
-<?php echo $rsvp_limit ? esc_html($rsvp_limit) : 'Unlimited'; ?>
+<?php echo $rsvp_limit ? esc_html($rsvp_limit) : esc_html__('Unlimited', 'jw-event-manager'); ?>
 </strong>
 </div>
 
@@ -69,7 +69,7 @@ $published_date = get_the_date();
 <div class="mt-4">
 
     <!-- RSVP BUTTON -->
-    <a href="#" class="jwem-btn btn btn-primary">RSVP Now</a>
+    <a href="#" class="jwem-btn jwem-rsvp-toggle"><?php esc_html_e('RSVP Now', 'jw-event-manager'); ?></a>
 
     <!-- HIDDEN FORM -->
     <div class="jwem-rsvp-form mt-3" style="display:none;">
