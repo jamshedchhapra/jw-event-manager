@@ -33,13 +33,26 @@ ob_start();
 
 <script>
 jQuery('#jwem-rsvp-form').on('submit',function(e){
+
 e.preventDefault();
 
+let form = jQuery(this);
+
 jQuery.post('<?php echo admin_url('admin-ajax.php'); ?>',
-jQuery(this).serialize() + '&action=jwem_rsvp',
+form.serialize() + '&action=jwem_rsvp',
 function(res){
+
 jQuery('#jwem-msg').html(res);
+
+if(res.includes('RSVP Confirmed')){
+
+form.find('input,button').prop('disabled',true);
+form[0].reset();
+
+}
+
 });
+
 });
 </script>
 
@@ -61,6 +74,10 @@ wp_die();
 }
 
 $id = intval($_POST['event_id']);
+if(get_post_type($id) !== 'jwem_event'){
+echo __('Invalid Event','jw-event-manager');
+wp_die();
+}
 $name = sanitize_text_field($_POST['name']);
 $email = sanitize_email($_POST['email']);
 
@@ -78,6 +95,18 @@ if(!$list) $list=[];
 if($limit && count($list)>=$limit){
 echo __('RSVP Limit Reached','jw-event-manager');
 wp_die();
+}
+
+/* DUPLICATE CHECK */
+foreach($list as $attendee){
+
+if($attendee['email'] === $email){
+
+echo __('You already RSVP’d','jw-event-manager');
+wp_die();
+
+}
+
 }
 
 /* SAVE */
