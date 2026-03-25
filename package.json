@@ -1,0 +1,24 @@
+{
+  "name": "jw-event-manager",
+  "version": "1.0.0",
+  "description": "Plugin scaffolded using WP-CLI.\r Custom CLI command:\r wp jwem seed-events",
+  "main": "index.js",
+  "directories": {
+    "test": "tests"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/jamshedchhapra/jw-event-manager.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/jamshedchhapra/jw-event-manager/issues"
+  },
+  "homepage": "https://github.com/jamshedchhapra/jw-event-manager#readme"
+}

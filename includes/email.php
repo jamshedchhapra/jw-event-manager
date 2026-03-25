@@ -44,3 +44,22 @@ function jwem_event_email_notify($new,$old,$post){
 
     wp_mail($admin,$subject,$message);
 }
+/**
+ * Send RSVP Email to User
+ */
+function jwem_send_rsvp_email($email,$event_id){
+
+$title = get_the_title($event_id);
+
+$message = sprintf(
+__('Your RSVP for "%s" is confirmed. We look forward to seeing you!','jw-event-manager'),
+$title
+);
+
+wp_mail(
+$email,
+__('RSVP Confirmation','jw-event-manager'),
+$message
+);
+
+}

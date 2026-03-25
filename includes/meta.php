@@ -130,6 +130,7 @@ function jwem_save_meta($post_id) {
     }
 }
 add_action('save_post', 'jwem_save_meta');
+delete_transient('jwem_events_cache');
 
 
 /* ===== EMAIL NOTIFICATION FUNCTION ===== */

@@ -1,44 +1,32 @@
-/*
-jQuery(document).on('submit','#jwem-rsvp',function(e){
-
-e.preventDefault();
-
-let form = jQuery(this);
-
-jQuery.post(jwem.ajax,{
-action:'jwem_rsvp',
-event_id:form.find('[name=event_id]').val(),
-name:form.find('[name=name]').val(),
-email:form.find('[name=email]').val()
-},function(res){
-
-jQuery('#jwem-msg').html(res);
-
-});
-
-}); */
-
 /**
  * ==========================================
- * JWEM RSVP JS (FIXED VERSION)
+ * JWEM RSVP JS (DEBUG + FINAL FIX)
  * ==========================================
  */
 
 jQuery(document).ready(function($){
 
+    console.log('JWEM JS LOADED ✅');
+
     /**
-     * Toggle RSVP Form
+     * Toggle RSVP Form (FORCE BIND)
      */
-    $('.jwem-btn').on('click', function(e){
+    $(document).on('click', '.jwem-btn', function(e){
+
+        console.log('RSVP BUTTON CLICKED ✅');
+
         e.preventDefault();
 
         $('.jwem-rsvp-form').slideToggle();
+
     });
 
     /**
      * Submit RSVP Form
      */
     $(document).on('submit','#jwem-rsvp',function(e){
+
+        console.log('FORM SUBMIT TRIGGERED ✅');
 
         e.preventDefault();
 
@@ -49,7 +37,7 @@ jQuery(document).ready(function($){
             event_id:form.find('[name=event_id]').val(),
             name:form.find('[name=name]').val(),
             email:form.find('[name=email]').val(),
-            jwem_nonce: jwem.nonce // ✅ FIXED
+            jwem_nonce: jwem.nonce
         },function(res){
 
             $('#jwem-msg').html(res);
