@@ -40,3 +40,13 @@ Includes PHPUnit test for CPT
 - All inputs sanitized
 - Nonce security implemented
 - Optimized queries with caching
+
+## Shortcode Usage ==
+
+Display events listing:
+
+[jwem_events]
+
+Display RSVP form inside single event template:
+
+[jwem_rsvp]

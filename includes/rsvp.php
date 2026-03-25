@@ -44,6 +44,9 @@ function(res){
 
 jQuery('#jwem-msg').html(res);
 
+/* ===== UX IMPROVEMENT ===== */
+/* Disable form + clear inputs after success */
+
 if(res.includes('RSVP Confirmed')){
 
 form.find('input,button').prop('disabled',true);
@@ -67,6 +70,7 @@ add_action('wp_ajax_nopriv_jwem_rsvp','jwem_rsvp_save');
 
 function jwem_rsvp_save(){
 
+/* ===== NONCE SECURITY ===== */
 if(!isset($_POST['jwem_nonce']) ||
 !wp_verify_nonce($_POST['jwem_nonce'],'jwem_rsvp_action')){
 echo __('Security failed','jw-event-manager');
@@ -74,10 +78,13 @@ wp_die();
 }
 
 $id = intval($_POST['event_id']);
+
+/* ===== EVENT VALIDATION ===== */
 if(get_post_type($id) !== 'jwem_event'){
 echo __('Invalid Event','jw-event-manager');
 wp_die();
 }
+
 $name = sanitize_text_field($_POST['name']);
 $email = sanitize_email($_POST['email']);
 
@@ -86,13 +93,15 @@ echo __('Invalid Email','jw-event-manager');
 wp_die();
 }
 
-/* LIMIT */
+/* ===== LIMIT + LIST FETCH ===== */
 $limit = intval(get_post_meta($id,'rsvp_limit',true));
 $list = get_post_meta($id,'attendees',true);
 
-if(!$list) $list=[];
+/* Ensure array safety */
+if(!is_array($list)) $list = [];
 
-if($limit && count($list)>=$limit){
+/* LIMIT CHECK */
+if($limit && count($list) >= $limit){
 echo __('RSVP Limit Reached','jw-event-manager');
 wp_die();
 }
@@ -101,26 +110,28 @@ wp_die();
 foreach($list as $attendee){
 
 if($attendee['email'] === $email){
-
 echo __('You already RSVP’d','jw-event-manager');
 wp_die();
-
 }
 
 }
 
-/* SAVE */
-$list[]=[
-'name'=>$name,
-'email'=>$email
+/* SAVE RSVP */
+$list[] = [
+'name'  => $name,
+'email' => $email
 ];
 
 update_post_meta($id,'attendees',$list);
 
+/* ===== REMAINING SEATS CALCULATION (AFTER SAVE) ===== */
+$remaining = $limit ? ($limit - count($list)) : __('Unlimited','jw-event-manager');
+
 /* SEND USER EMAIL */
 jwem_send_rsvp_email($email,$id);
 
-echo '<span class="jwem-success">'.__('RSVP Confirmed ✅','jw-event-manager').'</span>';
+/* SUCCESS MESSAGE */
+echo '<span class="jwem-success">'.__('RSVP Confirmed ✅','jw-event-manager').' - '.$remaining.' seats left</span>';
 
 wp_die();
 

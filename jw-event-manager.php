@@ -25,7 +25,7 @@ function jwem_load_textdomain(){
     load_plugin_textdomain(
         'jw-event-manager',
         false,
-        dirname(plugin_basename(__FILE__)) . '/languages'
+        dirname(plugin_basename(__FILE__)) . '/languages/'
     );
 
 }

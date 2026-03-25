@@ -18,6 +18,11 @@ set_transient('jwem_events_cache',$events,HOUR_IN_SECONDS);
 
 ob_start();
 
+/* ===== QUERY SAFETY FIX START ===== */
+/* Prevent fatal loop when no events exist */
+
+if($events->have_posts()){
+
 while($events->have_posts()){
 $events->the_post();
 
@@ -31,6 +36,15 @@ echo '<p>'.__('Location:','jw-event-manager').' '.$loc.'</p>';
 echo '</div>';
 
 }
+
+}else{
+
+/* Graceful fallback UI when no events found */
+echo '<p>'.__('No events found','jw-event-manager').'</p>';
+
+}
+
+/* ===== QUERY SAFETY FIX END ===== */
 
 wp_reset_postdata();
 
