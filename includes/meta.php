@@ -1,5 +1,4 @@
 <?php
-/* ===== START META ===== */
 /**
  * JW Event Manager - Meta Box Handler
  * 
@@ -10,9 +9,9 @@
  *
  * @package JW Event Manager
  */
-
-
-/* ===== REGISTER META BOX ===== */
+/**
+ * Register the event details meta box.
+ */
 function jwem_meta_box() {
     add_meta_box(
         'jwem_details',       // Unique ID
@@ -25,8 +24,9 @@ function jwem_meta_box() {
 }
 add_action('add_meta_boxes', 'jwem_meta_box');
 
-
-/* ===== META BOX HTML ===== */
+/**
+ * Render the event details meta box fields.
+ */
 function jwem_meta_html($post) {
     // Security nonce field for verification
     wp_nonce_field('jwem_save', 'jwem_nonce');
@@ -40,13 +40,13 @@ function jwem_meta_html($post) {
 
     ?>
 
-    <!-- Event Date -->
+    <!-- Event date -->
     <p>
         <label for="jwem_date"><strong><?php _e('Event Date', 'jw-event-manager'); ?></strong></label><br>
         <input type="date" id="jwem_date" name="date" value="<?php echo esc_attr($date); ?>">
     </p>
 
-    <!-- Event Location -->
+    <!-- Event location -->
     <p>
         <label for="jwem_loc"><strong><?php _e('Location', 'jw-event-manager'); ?></strong></label><br>
         <input type="text" id="jwem_loc" name="loc" value="<?php echo esc_attr($loc); ?>" style="width:100%;">
@@ -60,13 +60,13 @@ function jwem_meta_html($post) {
         <input type="text" id="jwem_organizer" name="organizer" value="<?php echo esc_attr($organizer); ?>" style="width:100%;">
     </p>
 
-    <!-- RSVP Limit -->
+    <!-- RSVP limit -->
     <p>
         <label for="jwem_rsvp_limit"><strong><?php _e('RSVP Limit', 'jw-event-manager'); ?></strong></label><br>
         <input type="number" id="jwem_rsvp_limit" name="rsvp_limit" value="<?php echo esc_attr($rsvp_limit); ?>" style="width:100%;">
     </p>
 
-    <!-- Email Notification -->
+    <!-- Email notification -->
     <p>
         <label>
             <input type="checkbox" name="email_notify" value="1" <?php checked($email_notify, 1); ?>>
@@ -77,12 +77,13 @@ function jwem_meta_html($post) {
     <?php
 }
 
-
-/* ===== SAVE META DATA SAFELY ===== */
+/**
+ * Save event meta fields securely.
+ */
 function jwem_save_meta($post_id) {
 
     // 1. Verify nonce
-    if (!isset($_POST['jwem_nonce']) || !wp_verify_nonce($_POST['jwem_nonce'], 'jwem_save')) {
+    if (!isset($_POST['jwem_nonce']) || !wp_verify_nonce(sanitize_text_field(wp_unslash($_POST['jwem_nonce'])), 'jwem_save')) {
         return;
     }
 
@@ -98,25 +99,25 @@ function jwem_save_meta($post_id) {
 
     // 4. Sanitize and save Event Date
     if (isset($_POST['date'])) {
-        $date_sanitized = sanitize_text_field($_POST['date']);
+        $date_sanitized = sanitize_text_field(wp_unslash($_POST['date']));
         update_post_meta($post_id, 'date', $date_sanitized);
     }
 
     // 5. Sanitize and save Location
     if (isset($_POST['loc'])) {
-        $loc_sanitized = sanitize_text_field($_POST['loc']);
+        $loc_sanitized = sanitize_text_field(wp_unslash($_POST['loc']));
         update_post_meta($post_id, 'loc', $loc_sanitized);
     }
 
     // 6. Sanitize and save Organizer
     if (isset($_POST['organizer'])) {
-        $organizer_sanitized = sanitize_text_field($_POST['organizer']);
+        $organizer_sanitized = sanitize_text_field(wp_unslash($_POST['organizer']));
         update_post_meta($post_id, 'organizer', $organizer_sanitized);
     }
 
     // 7. Sanitize and save RSVP Limit (ensure integer)
     if (isset($_POST['rsvp_limit'])) {
-        $rsvp_limit_sanitized = intval($_POST['rsvp_limit']);
+        $rsvp_limit_sanitized = absint(wp_unslash($_POST['rsvp_limit']));
         update_post_meta($post_id, 'rsvp_limit', $rsvp_limit_sanitized);
     }
 
@@ -129,21 +130,21 @@ function jwem_save_meta($post_id) {
         jwem_send_email_notification($post_id);
     }
 }
-add_action('save_post', 'jwem_save_meta');
+add_action('save_post_jwem_event', 'jwem_save_meta');
 delete_transient('jwem_events_cache');
 
 
-/* ===== EMAIL NOTIFICATION FUNCTION ===== */
+/**
+ * Send the admin notification email for event updates.
+ */
 function jwem_send_email_notification($post_id) {
     // Ensure post type
     $post = get_post($post_id);
     if (!$post || $post->post_type !== 'jwem_event') return;
 
-    $subject = sprintf(__('Event Updated: %s', 'jw-event-manager'), $post->post_title);
-    $message = sprintf(__('The event "%s" has been published/updated. Check details here: %s', 'jw-event-manager'), $post->post_title, get_permalink($post_id));
+    $subject = sprintf(__('Event Updated: %s', 'jw-event-manager'), wp_strip_all_tags($post->post_title));
+    $message = sprintf(__('The event "%s" has been published/updated. Check details here: %s', 'jw-event-manager'), wp_strip_all_tags($post->post_title), esc_url_raw(get_permalink($post_id)));
 
     // Send to admin by default (extendable to subscribers)
     wp_mail(get_option('admin_email'), $subject, $message);
 }
-
-/* ===== END META ===== */

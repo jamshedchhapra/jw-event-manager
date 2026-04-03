@@ -17,12 +17,12 @@ $published_date = get_the_date();
 <div class="jwem-card bg-white">
 
 <?php if (has_post_thumbnail()) : ?>
-<img src="<?php the_post_thumbnail_url('large'); ?>" class="img-fluid w-100">
+<img src="<?php echo esc_url(get_the_post_thumbnail_url(get_the_ID(), 'large')); ?>" class="img-fluid w-100" alt="<?php echo esc_attr(get_the_title()); ?>">
 <?php endif; ?>
 
 <div class="p-5">
 
-<h1 class="mb-3"><?php the_title(); ?></h1>
+<h1 class="mb-3"><?php echo esc_html(get_the_title()); ?></h1>
 
 <div class="jwem-meta mb-2">
 📅 <?php esc_html_e('Event Date:', 'jw-event-manager'); ?>
@@ -53,25 +53,17 @@ $published_date = get_the_date();
 </div>
 
 <div class="mb-4">
-<?php the_content(); ?>
+<?php echo wp_kses_post(apply_filters('the_content', get_the_content())); ?>
 </div>
 
-<!-- ==========================================
-     START RSVP BUTTON + FORM (FIXED)
-========================================== -->
+<div class="mt-4">
 
 <div class="mt-4">
 
-    <!-- ==========================================
-     START RSVP SECTION
-========================================== -->
-
-<div class="mt-4">
-
-    <!-- RSVP BUTTON -->
+    <!-- RSVP button -->
     <a href="#" class="jwem-btn jwem-rsvp-toggle"><?php esc_html_e('RSVP Now', 'jw-event-manager'); ?></a>
 
-    <!-- HIDDEN FORM -->
+    <!-- Hidden RSVP form -->
     <div class="jwem-rsvp-form mt-3" style="display:none;">
 
         <?php echo do_shortcode('[jwem_rsvp]'); ?>
@@ -79,11 +71,6 @@ $published_date = get_the_date();
     </div>
 
 </div>
-
-<!-- ==========================================
-     END RSVP SECTION
-========================================== -->
-
 
 </div>
 

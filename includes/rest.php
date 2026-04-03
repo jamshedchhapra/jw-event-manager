@@ -1,28 +1,12 @@
 <?php
 /**
- * REST API Integration
- *
- * Purpose:
- * Expose Event data to external applications.
- *
- * Endpoint:
- * /wp-json/jwem/v1/events
- *
- * Method:
- * GET
- *
- * Security:
- * Public read-only endpoint.
- *
- * Performance:
- * - Limited query size
- * - Transient caching added
+ * REST API integration for event data.
  */
 
 add_action('rest_api_init','jwem_register_rest_routes');
 
 /**
- * Register custom REST route
+ * Register the public events REST route.
  */
 function jwem_register_rest_routes(){
 
@@ -41,20 +25,16 @@ function jwem_register_rest_routes(){
 
 
 /**
- * REST Callback
- * Returns structured event data
+ * Return structured event data for the REST endpoint.
  */
 function jwem_rest_get_events(){
 
-    /* ===== PERFORMANCE CACHE START ===== */
-    /* Avoid repeated DB queries for same REST response */
+    /* Reuse cached event data when the stored payload is valid. */
 
     $cached = get_transient('jwem_rest_events');
     if ($cached !== false && jwem_rest_cache_is_valid($cached)) {
         return rest_ensure_response($cached);
     }
-
-    /* ===== PERFORMANCE CACHE END ===== */
 
     $events = get_posts([
         'post_type'      => 'jwem_event',
@@ -67,20 +47,19 @@ function jwem_rest_get_events(){
 
     $data = [];
 
-    /* ===== SAFE EMPTY RESULT HANDLING ===== */
+    /* Build the response payload only when events exist. */
     if(!empty($events)){
 
         foreach($events as $event){
 
             $data[] = [
 
-                'id'    => $event->ID,
-                'title' => $event->post_title,
-                'link'  => get_permalink($event->ID),
-
-                'date'  => get_post_meta($event->ID,'date',true),
-                'location' => get_post_meta($event->ID,'loc',true),
-                'organizer'=> get_post_meta($event->ID,'organizer',true)
+                'id'        => absint($event->ID),
+                'title'     => sanitize_text_field(get_the_title($event->ID)),
+                'link'      => esc_url_raw(get_permalink($event->ID)),
+                'date'      => sanitize_text_field(get_post_meta($event->ID,'date',true)),
+                'location'  => sanitize_text_field(get_post_meta($event->ID,'loc',true)),
+                'organizer' => sanitize_text_field(get_post_meta($event->ID,'organizer',true))
 
             ];
 
@@ -88,7 +67,7 @@ function jwem_rest_get_events(){
 
     }
 
-    /* ===== STORE CACHE (5 minutes) ===== */
+    /* Cache the structured response for repeated requests. */
     set_transient('jwem_rest_events',$data,5 * MINUTE_IN_SECONDS);
 
     return rest_ensure_response($data);

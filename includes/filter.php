@@ -1,7 +1,7 @@
 <?php
-/* ======================================================
-   ADMIN FILTERS (Existing Code - Preserved & Documented)
-====================================================== */
+/**
+ * Admin and frontend event filters.
+ */
 
 /**
  * Add filters to Admin Listing Screen
@@ -11,48 +11,53 @@ add_action('restrict_manage_posts', function(){
     global $typenow;
 
     // Only apply for Event CPT
-    if($typenow != 'jwem_event') return;
+    if($typenow !== 'jwem_event') return;
 
-    /**
-     * ----------------------------------
-     * TEXT SEARCH FIELD
-     * ----------------------------------
-     */
+    $event_search = isset($_GET['event_search']) ? sanitize_text_field(wp_unslash($_GET['event_search'])) : '';
+    $event_type_filter = isset($_GET['event_type_filter']) ? absint(wp_unslash($_GET['event_type_filter'])) : 0;
+    $organizer_filter = isset($_GET['organizer_filter']) ? sanitize_text_field(wp_unslash($_GET['organizer_filter'])) : '';
+
+    /** Render the admin search field. */
     ?>
     <input type="text" name="event_search" placeholder="Search title or description"
-           value="<?php echo isset($_GET['event_search']) ? esc_attr($_GET['event_search']) : ''; ?>">
+           value="<?php echo esc_attr($event_search); ?>">
     <?php
 
-    /**
-     * ----------------------------------
-     * EVENT TYPE DROPDOWN
-     * ----------------------------------
-     */
+    /** Render the event type dropdown. */
     wp_dropdown_categories([
         'taxonomy'        => 'event_type',
         'name'            => 'event_type_filter',
-        'show_option_all' => 'All Event Types',
-        'selected'        => $_GET['event_type_filter'] ?? '',
+        'show_option_all' => __('All Event Types', 'jw-event-manager'),
+        'selected'        => $event_type_filter,
     ]);
 
-    /**
-     * ----------------------------------
-     * ORGANIZER FILTER (Dynamic Query)
-     * ----------------------------------
-     */
-    global $wpdb;
+    /** Build the organizer filter from existing event meta. */
+    $organizers = [];
+    $event_ids = get_posts([
+        'post_type'      => 'jwem_event',
+        'post_status'    => ['publish', 'draft', 'pending', 'future', 'private'],
+        'posts_per_page' => -1,
+        'fields'         => 'ids',
+        'no_found_rows'  => true,
+    ]);
 
-    $organizers = $wpdb->get_col("
-        SELECT DISTINCT meta_value FROM $wpdb->postmeta
-        WHERE meta_key = 'organizer'
-    ");
+    foreach ($event_ids as $event_id) {
+        $organizer = get_post_meta($event_id, 'organizer', true);
+
+        if ($organizer !== '') {
+            $organizers[] = sanitize_text_field($organizer);
+        }
+    }
+
+    $organizers = array_values(array_unique($organizers));
+    sort($organizers, SORT_NATURAL | SORT_FLAG_CASE);
     ?>
 
     <select name="organizer_filter">
-        <option value="">All Organizers</option>
+        <option value=""><?php esc_html_e('All Organizers', 'jw-event-manager'); ?></option>
         <?php foreach($organizers as $org): ?>
             <option value="<?php echo esc_attr($org); ?>"
-                <?php selected($_GET['organizer_filter'] ?? '', $org); ?>>
+                <?php selected($organizer_filter, $org); ?>>
                 <?php echo esc_html($org); ?>
             </option>
         <?php endforeach; ?>
@@ -60,11 +65,6 @@ add_action('restrict_manage_posts', function(){
     <?php
 
 });
-
-
-/* ======================================================
-   ADMIN QUERY FILTERING (Existing Code - Preserved)
-====================================================== */
 
 add_action('pre_get_posts', function($query){
 
@@ -75,40 +75,29 @@ add_action('pre_get_posts', function($query){
     if($pagenow != 'edit.php') return;
     if(($query->get('post_type')) != 'jwem_event') return;
 
-    /**
-     * TEXT SEARCH
-     */
+    /** Apply admin text search. */
     if(!empty($_GET['event_search'])){
-        $query->set('s', sanitize_text_field($_GET['event_search']));
+        $query->set('s', sanitize_text_field(wp_unslash($_GET['event_search'])));
     }
 
-    /**
-     * EVENT TYPE FILTER
-     */
+    /** Apply admin event type filter. */
     if(!empty($_GET['event_type_filter'])){
         $query->set('tax_query', [[
             'taxonomy' => 'event_type',
             'field'    => 'term_id',
-            'terms'    => intval($_GET['event_type_filter']),
+            'terms'    => absint(wp_unslash($_GET['event_type_filter'])),
         ]]);
     }
 
-    /**
-     * ORGANIZER FILTER
-     */
+    /** Apply admin organizer filter. */
     if(!empty($_GET['organizer_filter'])){
         $query->set('meta_query', [[
             'key'   => 'organizer',
-            'value' => sanitize_text_field($_GET['organizer_filter']),
+            'value' => sanitize_text_field(wp_unslash($_GET['organizer_filter'])),
         ]]);
     }
 
 });
-
-
-/* ======================================================
-   FRONTEND FILTER SUPPORT (NEW - REQUIRED FOR AUDIT)
-====================================================== */
 
 /**
  * Modify Event Archive Query (Frontend)
@@ -121,31 +110,25 @@ add_action('pre_get_posts', function($query){
     // Apply only on Event archive
     if(is_post_type_archive('jwem_event')){
 
-        /**
-         * KEYWORD SEARCH
-         */
+        /** Apply frontend keyword search. */
         if(!empty($_GET['keyword'])){
-            $query->set('s', sanitize_text_field($_GET['keyword']));
+            $query->set('s', sanitize_text_field(wp_unslash($_GET['keyword'])));
         }
 
-        /**
-         * TAXONOMY FILTER
-         */
+        /** Apply frontend event type filter. */
         if(!empty($_GET['event_type'])){
             $query->set('tax_query', [[
                 'taxonomy' => 'event_type',
                 'field'    => 'slug',
-                'terms'    => sanitize_text_field($_GET['event_type']),
+                'terms'    => sanitize_title(wp_unslash($_GET['event_type'])),
             ]]);
         }
 
-        /**
-         * DATE FILTER
-         */
+        /** Apply frontend date filter. */
         if(!empty($_GET['event_date'])){
             $query->set('meta_query', [[
                 'key'     => 'date',
-                'value'   => sanitize_text_field($_GET['event_date']),
+                'value'   => sanitize_text_field(wp_unslash($_GET['event_date'])),
                 'compare' => '='
             ]]);
         }

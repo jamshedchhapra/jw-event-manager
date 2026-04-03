@@ -1,11 +1,6 @@
 <?php
 /**
- * RSVP Frontend System
- *
- * Enhanced Version:
- * - Nonce security added
- * - Input validation
- * - RSVP limit check
+ * RSVP frontend system.
  */
 
 add_shortcode('jwem_rsvp','jwem_rsvp_form');
@@ -23,7 +18,7 @@ ob_start();
 
 <input type="email" name="email" placeholder="<?php _e('Your Email','jw-event-manager'); ?>" required>
 
-<input type="hidden" name="event_id" value="<?php echo get_the_ID(); ?>">
+<input type="hidden" name="event_id" value="<?php echo esc_attr(get_the_ID()); ?>">
 
 <button type="submit"><?php _e('Confirm RSVP','jw-event-manager'); ?></button>
 
@@ -36,59 +31,62 @@ return ob_get_clean();
 
 }
 
-/* AJAX */
+/** Register RSVP AJAX handlers. */
 add_action('wp_ajax_jwem_rsvp','jwem_rsvp_save');
 add_action('wp_ajax_nopriv_jwem_rsvp','jwem_rsvp_save');
 
+/**
+ * Validate and store an RSVP submission.
+ */
 function jwem_rsvp_save(){
 
-/* ===== NONCE SECURITY ===== */
+/* Validate the AJAX nonce before processing the request. */
 if(!isset($_POST['jwem_nonce']) ||
-!wp_verify_nonce($_POST['jwem_nonce'],'jwem_rsvp_action')){
-echo __('Security failed','jw-event-manager');
+!wp_verify_nonce(sanitize_text_field(wp_unslash($_POST['jwem_nonce'])),'jwem_rsvp_action')){
+echo esc_html__('Security failed','jw-event-manager');
 wp_die();
 }
 
-$id = intval($_POST['event_id']);
+$id = isset($_POST['event_id']) ? absint(wp_unslash($_POST['event_id'])) : 0;
 
-/* ===== EVENT VALIDATION ===== */
+/* Ensure the RSVP targets a valid event post. */
 if(get_post_type($id) !== 'jwem_event'){
-echo __('Invalid Event','jw-event-manager');
+echo esc_html__('Invalid Event','jw-event-manager');
 wp_die();
 }
 
-$name = sanitize_text_field($_POST['name']);
-$email = sanitize_email($_POST['email']);
+$name = isset($_POST['name']) ? sanitize_text_field(wp_unslash($_POST['name'])) : '';
+$email = isset($_POST['email']) ? sanitize_email(wp_unslash($_POST['email'])) : '';
 
 if(!is_email($email)){
-echo __('Invalid Email','jw-event-manager');
+echo esc_html__('Invalid Email','jw-event-manager');
 wp_die();
 }
 
-/* ===== LIMIT + LIST FETCH ===== */
+/* Load current RSVP capacity and attendee list. */
 $limit = intval(get_post_meta($id,'rsvp_limit',true));
 $list = get_post_meta($id,'attendees',true);
 
-/* Ensure array safety */
+/* Normalize attendees so later checks are safe. */
 if(!is_array($list)) $list = [];
 
-/* LIMIT CHECK */
+/* Block submissions when the event has reached capacity. */
 if($limit && count($list) >= $limit){
-echo __('RSVP Limit Reached','jw-event-manager');
+echo esc_html__('RSVP Limit Reached','jw-event-manager');
 wp_die();
 }
 
-/* DUPLICATE CHECK */
+/* Prevent duplicate RSVP submissions for the same email. */
 foreach($list as $attendee){
 
 if($attendee['email'] === $email){
-echo __('You already RSVP’d','jw-event-manager');
+echo esc_html__('You already RSVP’d','jw-event-manager');
 wp_die();
 }
 
 }
 
-/* SAVE RSVP */
+/* Store the attendee after validation passes. */
 $list[] = [
 'name'  => $name,
 'email' => $email
@@ -96,14 +94,19 @@ $list[] = [
 
 update_post_meta($id,'attendees',$list);
 
-/* ===== REMAINING SEATS CALCULATION (AFTER SAVE) ===== */
-$remaining = $limit ? ($limit - count($list)) : __('Unlimited','jw-event-manager');
+/* Calculate remaining seats for the success response. */
+$remaining = $limit ? (string) ($limit - count($list)) : __('Unlimited','jw-event-manager');
 
-/* SEND USER EMAIL */
+/* Send the confirmation email after saving. */
 jwem_send_rsvp_email($email,$id);
 
-/* SUCCESS MESSAGE */
-echo '<span class="jwem-success">'.__('RSVP Confirmed ✅','jw-event-manager').' - '.$remaining.' seats left</span>';
+/* Return a user-facing success message. */
+printf(
+    '<span class="jwem-success">%1$s - %2$s %3$s</span>',
+    esc_html__('RSVP Confirmed ✅','jw-event-manager'),
+    esc_html($remaining),
+    esc_html__('seats left', 'jw-event-manager')
+);
 
 wp_die();
 
